@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AmbientLight, AxesHelper, BoxGeometry, BufferGeometry, DirectionalLight, Material, Mesh, MeshPhongMaterial, PerspectiveCamera, PlaneGeometry, PointLight, Quaternion, Raycaster, Scene, Vector2, Vector3, WebGLRenderer } from 'three';
+import { AmbientLight, AxesHelper, BackSide, BoxGeometry, BufferGeometry, DirectionalLight, Material, Mesh, MeshBasicMaterial, MeshPhongMaterial, PerspectiveCamera, PlaneGeometry, PointLight, Quaternion, Raycaster, Scene, TextureLoader, Vector2, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 class SceneObject {
@@ -58,9 +58,8 @@ export class AppComponent implements OnInit {
     const plane = new SceneObject(new PlaneGeometry(10000, 10000), new MeshPhongMaterial({ color: 0xffffff}));
     plane.rotate(new Vector3(- Math.PI / 2, 0, 0));
     plane.move(new Vector3(0, -0.5, 0));
-    this.scene.add(plane.getMesh())
+    // this.scene.add(plane.getMesh())
 
-    // TODO: on click add a new item to the 'warehouse'
     const initialFront = new Vector3(0, 0, 1); // of the intersect cube
 
     const animate = () => {
@@ -95,7 +94,7 @@ export class AppComponent implements OnInit {
     this.pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
   }
   
-  private onClick = (event: any) => {
+  private onClick = (_event: any) => {
     if (this.intersectCubeShown) {
       const newObject = this.intersectCube.getMesh().clone();
       newObject.material = new MeshPhongMaterial({ color: 0x555555 });
@@ -125,7 +124,32 @@ export class AppComponent implements OnInit {
     window.addEventListener('pointermove', this.onPointerMove);
     window.addEventListener('click', this.onClick);
 
+    this.setupSkybox();
     // this.setupDebug();
+  }
+
+  private setupSkybox() {
+    const materialArray = [];
+    const texture_ft = new TextureLoader().load('assets/sb_ft.jpg');
+    const texture_bk = new TextureLoader().load('assets/sb_bk.jpg');
+    const texture_up = new TextureLoader().load('assets/sb_up.jpg');
+    const texture_dn = new TextureLoader().load('assets/sb_dn.jpg');
+    const texture_rt = new TextureLoader().load('assets/sb_rt.jpg');
+    const texture_lf = new TextureLoader().load('assets/sb_lf.jpg');
+
+    materialArray.push(new MeshBasicMaterial({ map: texture_ft }));
+    materialArray.push(new MeshBasicMaterial({ map: texture_bk }));
+    materialArray.push(new MeshBasicMaterial({ map: texture_up }));
+    materialArray.push(new MeshBasicMaterial({ map: texture_dn }));
+    materialArray.push(new MeshBasicMaterial({ map: texture_rt }));
+    materialArray.push(new MeshBasicMaterial({ map: texture_lf }));
+
+    materialArray.forEach(mat => mat.side = BackSide);
+
+    const skyboxGeo = new BoxGeometry(1000, 1000, 1000);
+    const skybox = new Mesh(skyboxGeo, materialArray);
+    this.scene.add(skybox);
+
   }
 
   private setupDebug() {
