@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
-import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Vector2, BoxGeometry, MeshPhongMaterial, Vector3, Quaternion, DirectionalLight, PointLight, AmbientLight, TextureLoader, MeshBasicMaterial, BackSide, Mesh, AxesHelper } from 'three';
+import { GUI } from 'dat.gui';
+import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Vector2, BoxGeometry, MeshPhongMaterial, Vector3, Quaternion, DirectionalLight, PointLight, AmbientLight, TextureLoader, MeshBasicMaterial, BackSide, Mesh, AxesHelper, Object3D } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 @Component({
@@ -10,6 +11,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 export class BuilderComponent implements AfterViewInit {
 
   @ViewChild('canvas') canvasEl!: ElementRef
+
+  private debugOptions = {
+    showDebug: false,
+    showSkybox: true,
+  };
+  private axesHelper!: AxesHelper;
+  private skybox!: Object3D;
 
   private scene = new Scene();
   private camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -23,6 +31,7 @@ export class BuilderComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.setupScene();
+    this.setupGUI();
 
     const cube = new Mesh(new BoxGeometry(2, 1, 3), new MeshPhongMaterial({ color: 0xcdcdcd }));
     this.scene.add(cube);
@@ -119,14 +128,32 @@ export class BuilderComponent implements AfterViewInit {
     materialArray.forEach(mat => mat.side = BackSide);
 
     const skyboxGeo = new BoxGeometry(1000, 1000, 1000);
-    const skybox = new Mesh(skyboxGeo, materialArray);
-    this.scene.add(skybox);
+    this.skybox = new Mesh(skyboxGeo, materialArray);
+    this.scene.add(this.skybox);
 
   }
 
   private setupDebug() {
-    const axesHelper = new AxesHelper(5);
-    this.scene.add(axesHelper);
+    this.axesHelper = new AxesHelper(5);
   }
 
+  setupGUI() {
+    const gui = new GUI({ name: 'GUI test' });
+    gui.add(this.debugOptions, 'showDebug').onChange((val) => {
+      if (val) {
+        this.scene.add(this.axesHelper);
+      } else {
+        this.scene.remove(this.axesHelper);
+      }
+
+    });
+
+    gui.add(this.debugOptions, 'showSkybox').onChange((val) => {
+      if (val) {
+        this.scene.add(this.skybox);
+      } else {
+        this.scene.remove(this.skybox);
+      }
+    })
+  }
 }
