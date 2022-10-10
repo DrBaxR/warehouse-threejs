@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { GUI } from 'dat.gui';
-import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Vector2, BoxGeometry, MeshPhongMaterial, Vector3, Quaternion, DirectionalLight, PointLight, AmbientLight, TextureLoader, MeshBasicMaterial, BackSide, Mesh, AxesHelper, Object3D, SphereGeometry } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Vector2, BoxGeometry, MeshPhongMaterial, Vector3, Quaternion, DirectionalLight, PointLight, AmbientLight, TextureLoader, MeshBasicMaterial, BackSide, Mesh, AxesHelper, Object3D, SphereGeometry, Material } from 'three';
 import { CSG } from 'three-csg-ts';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
@@ -28,7 +28,9 @@ export class BuilderComponent implements AfterViewInit {
   private pointer = new Vector2();
 
   private intersectCubeShown = false;
-  private intersectCube = new Mesh(new BoxGeometry(0.5, 0.3, 0.1), new MeshPhongMaterial({ color: 0x00ff00 }))
+  private intersectCube = new Mesh(new BoxGeometry(0.5, 0.3, 0.5), new MeshPhongMaterial({ color: 0x00ff00 }))
+
+  private cube!: Mesh;
 
   ngAfterViewInit(): void {
     this.setupScene();
@@ -36,6 +38,7 @@ export class BuilderComponent implements AfterViewInit {
     this.addCsgDemo();
 
     const cube = new Mesh(new BoxGeometry(2, 1, 3), new MeshPhongMaterial({ color: 0xcdcdcd }));
+    this.cube = cube;
     this.scene.add(cube);
 
     // const plane = new Mesh(new PlaneGeometry(10000, 10000), new MeshPhongMaterial({ color: 0xffffff}));
@@ -84,7 +87,15 @@ export class BuilderComponent implements AfterViewInit {
       const newObject = this.intersectCube.clone();
       newObject.material = new MeshPhongMaterial({ color: 0x555555 });
 
-      this.scene.add(newObject);
+      const res = CSG.subtract(this.cube, newObject);
+
+      // this.scene.add(newObject);
+      this.scene.remove(this.cube);
+      this.cube.geometry.dispose();
+      (this.cube.material as Material).dispose();
+
+      this.cube = res;
+      this.scene.add(this.cube);
     }
   }
 
