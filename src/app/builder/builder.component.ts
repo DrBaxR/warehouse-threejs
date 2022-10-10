@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { GUI } from 'dat.gui';
-import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Vector2, BoxGeometry, MeshPhongMaterial, Vector3, Quaternion, DirectionalLight, PointLight, AmbientLight, TextureLoader, MeshBasicMaterial, BackSide, Mesh, AxesHelper, Object3D } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Vector2, BoxGeometry, MeshPhongMaterial, Vector3, Quaternion, DirectionalLight, PointLight, AmbientLight, TextureLoader, MeshBasicMaterial, BackSide, Mesh, AxesHelper, Object3D, SphereGeometry } from 'three';
+import { CSG } from 'three-csg-ts';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 @Component({
@@ -31,7 +32,8 @@ export class BuilderComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.setupScene();
-    this.setupGUI();
+    // this.setupGUI();
+    this.addCsgDemo();
 
     const cube = new Mesh(new BoxGeometry(2, 1, 3), new MeshPhongMaterial({ color: 0xcdcdcd }));
     this.scene.add(cube);
@@ -137,7 +139,7 @@ export class BuilderComponent implements AfterViewInit {
     this.axesHelper = new AxesHelper(5);
   }
 
-  setupGUI() {
+  private setupGUI() {
     const gui = new GUI({ name: 'GUI test' });
     gui.add(this.debugOptions, 'showDebug').onChange((val) => {
       if (val) {
@@ -155,5 +157,28 @@ export class BuilderComponent implements AfterViewInit {
         this.scene.remove(this.skybox);
       }
     })
+  }
+
+  // solves the extrusion problem
+  private addCsgDemo() {
+    const box = new Mesh(
+      new BoxGeometry(2, 2, 2),
+      new MeshPhongMaterial({ color: 0xffffff }),
+    )
+    box.position.set(3, 0, 3);
+
+    const sphere = new Mesh(
+      new SphereGeometry(1.2, 20, 20),
+      new MeshPhongMaterial({ color: 0xffffff }),
+    );
+    sphere.position.set(3, 0, 3);
+
+    const res = CSG.subtract(box, sphere);
+    res.position.set(-3, 0, 3);
+
+    this.scene.add(res)
+
+    this.scene.add(box);
+    this.scene.add(sphere);
   }
 }
