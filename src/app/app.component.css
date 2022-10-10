@@ -1,0 +1,16 @@
+.container {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+.ui {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.builder {
+  flex: 1;
+}
